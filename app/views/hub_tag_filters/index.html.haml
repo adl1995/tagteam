@@ -28,6 +28,13 @@
             tag_list: @tag_filters.map {|f| f.tag.name}.join(', '),
             class: 'add_filter_control hub_tag_filter btn btn-default' do
             = fa_icon 'pencil', text: 'Modify a tag for every item in this hub'
+        %li
+          = link_to create_supplement_filter_hub_tag_filters_path(@hub),
+            data_hub_id: @hub.id,
+            data_type: 'SupplementTagFilter',
+            tag_list: @tag_filters.map {|f| f.tag.name}.join(', '),
+            class: 'add_filter_control hub_tag_filter btn btn-primary' do
+            = fa_icon 'plus-circle', text: 'Add a supplement a tag'
     %h1.hub-filters-title Active filters
     - if @tag_filters.empty?
       %p No active filters

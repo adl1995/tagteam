@@ -18,4 +18,13 @@ class TagFilterPolicy < ApplicationPolicy
       user.has_role?(:owner, record) ||
       user.has_role?(:hub_tag_filterer, record.hub)
   end
+
+  def create_supplement_filter?
+    return false unless user.present?
+
+    user.has_role?(:superadmin) ||
+      user.has_role?(:owner, record.hub) ||
+      user.has_role?(:owner, record) ||
+      user.has_role?(:hub_tag_filterer, record.hub)
+  end    
 end

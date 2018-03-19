@@ -90,6 +90,14 @@ class BookmarkletsController < ApplicationController
 
         new_tags -= @hub.deprecated_tag_names
 
+        tags = new_tags
+
+        new_tags.each do |tag|
+          tags << ActsAsTaggableOn::Tag.find_by(name: tag).descendants.map(&:name) if ActsAsTaggableOn::Tag.exists?(name: tag)
+        end
+
+        new_tags = tags.flatten.compact.uniq
+
         new_tags.map do |tag|
           ActsAsTaggableOn::Tag.normalize_name(tag)
         end

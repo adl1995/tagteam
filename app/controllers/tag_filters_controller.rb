@@ -3,14 +3,14 @@
 class TagFiltersController < ApplicationController
   before_action :authenticate_user!, except: [:index]
   before_action :load_scope
-  before_action :load_tag_filter, except: %i[index new create]
+  before_action :load_tag_filter, except: %i[index new create create_supplement_filter]
 
   after_action :verify_authorized, except: :index
 
   def index
     # Need to be careful and use #in_hub here because feed items can exist in
     # multiple hubs. We'll always get a hub variable.
-    @tag_filters = @scope.tag_filters.in_hub(@hub)
+    @tag_filters = @scope.tag_filters.includes(:tag).in_hub(@hub)
     breadcrumbs.add @hub, hub_path(@hub)
     breadcrumbs.add @hub_feed, hub_hub_feed_path(@hub, @hub_feed) if @hub_feed
     breadcrumbs.add @feed_item, hub_feed_item_path(@hub, @feed_item) if @feed_item
@@ -40,12 +40,27 @@ class TagFiltersController < ApplicationController
 
                     new_tags -= @hub.deprecated_tag_names
 
-                    new_tags.map do |tag|
+                    tags = new_tags
+
+                    new_tags.each do |tag|
+                      tags << ActsAsTaggableOn::Tag.find_by(name: tag).descendants.map(&:name) if ActsAsTaggableOn::Tag.exists?(name: tag)
+                    end
+
+                    tags.flatten.compact.uniq.map do |tag|
                       TagFilters::Create.run(tag_filter_params.merge(new_tag_name: tag))
                     end
                   end
 
     tag_filters.all?(&:valid?) ? process_successful_create(tag_filters) : process_failed_create(tag_filters)
+  end
+
+  def create_supplement_filter
+    authorize_tag_filter = TagFilter.new
+    authorize_tag_filter.hub = @hub
+    authorize authorize_tag_filter
+    binding.pry
+
+    TagFilters::SupplementTagCreate.run(supplement_tag_filter_params)
   end
 
   def destroy
@@ -106,6 +121,18 @@ class TagFiltersController < ApplicationController
       user: current_user,
       tag_id: params[:tag_id]
     }
+  end
+
+  def supplement_tag_filter_params
+    {
+      filter_type: params[:filter_type],
+      hub: @hub,
+      hub_feed: @hub_feed,
+      scope: @scope,
+      user: current_user,
+      parent_tag_name: params[:parent_tag_name],
+      child_tag_name: params[:child_tag_name],
+    }  
   end
 
   def process_successful_create(tag_filters)

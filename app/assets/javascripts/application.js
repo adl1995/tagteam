@@ -142,12 +142,18 @@
       });
     },
     submitTagFilter: function(href,filter_type,tag_id,new_tag,modify_tag){
+      var data_attributes = {
+        filter_type: filter_type,
+        tag_id: tag_id,
+        [filter_type == 'SupplementTagFilter' ? 'parent_tag_name' : 'modify_tag']: modify_tag,
+        [filter_type == 'SupplementTagFilter' ? 'child_tag_name' : 'new_tag']: new_tag
+      }
       $.ajax({
         dataType: 'html',
         cache: false,
         url: href,
         type: 'post',
-        data: {filter_type: filter_type, tag_id: tag_id, new_tag: new_tag, modify_tag: modify_tag},
+        data: data_attributes,
         success: function(html){
           window.location.reload();
         }
@@ -639,7 +645,7 @@ $(document).ready(function(){
         var dialogNode = $('<div><div class="dialog-error alert alert-danger" style="display:none;"></div><div class="dialog-notice alert alert-info" style="display:none;"></div></div>');
           var prepend = '';
           var message = "<h2>Please enter the tag you'd like to add<h2>";
-          $(dialogNode).append(prepend + '<h2>' + message + '</h2><form method="post" action="/input_sources" accept-charset="UTF-8"><input type="hidden" value="' + $('[name=csrf-token]').attr('content') + '" name="authenticity_token"><input type="hidden" name="return_to" value="' + window.location+ '"><input type="text" id="new_tag_for_filter" name="input_source[item_source_attributes][name]" size="40" /><input type="hidden" value="ActsAsTaggableOn::Tag" name="input_source[item_source_attributes][type]" id="input_source_item_source_type"><input type="hidden" value="' + remix_id + '" name="input_source[republished_feed_id]" id="input_source_republished_feed_id"><input type="hidden" value="add" name="input_source[effect]" id="input_source_effect"></form>');        
+          $(dialogNode).append(prepend + '<h2>' + message + '</h2><form method="post" action="/input_sources" accept-charset="UTF-8"><input type="hidden" value="' + $('[name=csrf-token]').attr('content') + '" name="authenticity_token"><input type="hidden" name="return_to" value="' + window.location+ '"><input type="text" id="new_tag_for_filter" name="input_source[item_source_attributes][name]" size="40" /><input type="hidden" value="ActsAsTaggableOn::Tag" name="input_source[item_source_attributes][type]" id="input_source_item_source_type"><input type="hidden" value="' + remix_id + '" name="input_source[republished_feed_id]" id="input_source_republished_feed_id"><input type="hidden" value="add" name="input_source[effect]" id="input_source_effect"></form>');
   $(dialogNode).dialog({
             modal: true,
             width: 600,
@@ -673,7 +679,7 @@ $(document).ready(function(){
         if ($(this).attr('tag_list') != null && $(this).attr('tag_list') != '' ) {
           tagList =  '<div>Tags applied: ' + $(this).attr('tag_list') + '</div>'; 
         }
-        if(filter_type == 'ModifyTagFilter' || (filter_type == 'AddTagFilter' && tag_id == undefined) || (filter_type == 'DeleteTagFilter' && tag_id == undefined)){
+        if(filter_type == 'ModifyTagFilter' || (filter_type == 'AddTagFilter' && tag_id == undefined) || (filter_type == 'DeleteTagFilter' && tag_id == undefined) || filter_type == 'SupplementTagFilter'){
           var dialogNode = $('<div><div class="dialog-error alert alert-danger" style="display:none;"></div><div class="dialog-notice alert alert-info" style="display:none;"></div></div>');
           var message = '';
           var prepend = '';
@@ -686,6 +692,9 @@ $(document).ready(function(){
             message = "<h2>Please enter the replacement tag</h2>";
           } else if (filter_type == 'DeleteTagFilter'){
             message = "<h2>Please enter the tag you'd like to remove</h2>";
+          } else if (filter_type == 'SupplementTagFilter'){
+            prepend = "<h2>Please enter the primary tag </h2><input type='text' id='modify_tag_for_filter' class='form-control' /><div id='replace_tag_container'></div>";
+            message = "<h2>Please enter the supplement tag</h2>";
           }
           $(dialogNode).append(prepend + '<h2>' + message + '</h2><input type="text" id="new_tag_for_filter" class="form-control" /><div id="new_tag_container"></div>' + tagList);
           $(dialogNode).dialog({

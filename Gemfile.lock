@@ -72,6 +72,8 @@ GEM
       rack (>= 1.1.0)
     addressable (2.5.0)
       public_suffix (~> 2.0, >= 2.0.2)
+    ancestry (3.0.1)
+      activerecord (>= 3.2.0)
     arel (7.1.4)
     ast (2.3.0)
     autoprefixer-rails (6.7.3)
@@ -418,6 +420,7 @@ DEPENDENCIES
   active_interaction (~> 3.5)
   acts-as-taggable-on (~> 4.0)
   acts_as_api (~> 0.4)
+  ancestry (~> 3.0.1)
   awesome_print (~> 1.7)
   bootstrap-sass (~> 3.3)
   brakeman (~> 3.6)
@@ -485,4 +488,4 @@ RUBY VERSION
    ruby 2.3.0p0
 
 BUNDLED WITH
-   1.15.4
+   1.16.0

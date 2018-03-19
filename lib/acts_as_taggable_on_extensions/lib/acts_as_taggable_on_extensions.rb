@@ -45,6 +45,8 @@ ActsAsTaggableOn::Tag.class_eval do
 end
 
 ActsAsTaggableOn::Tag.instance_eval do
+  has_ancestry
+  
   has_many :add_tag_filters
   has_many :modify_tag_filters
   has_many :delete_tag_filters

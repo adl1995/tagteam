@@ -158,7 +158,11 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :tag_filters
+    resources :tag_filters do 
+      collection do
+        post :create_supplement_filter
+      end
+    end
 
     resources :feed_items do
       resources :tag_filters
