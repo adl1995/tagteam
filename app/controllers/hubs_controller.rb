@@ -67,6 +67,8 @@ class HubsController < ApplicationController
     :unsubscribe_feed
   ]
 
+  before_action :set_sort, only: :hub_admin
+
   protect_from_forgery except: :items
 
   SORT_OPTIONS = {
@@ -76,8 +78,9 @@ class HubsController < ApplicationController
     'owner' => ->(rel) { rel.by_first_owner },
     'number of items' => -> (rel) { rel.by_feed_items_count },
     'most recent tagging' => ->(rel) { rel.by_most_recent_tagging },
-    'created_date' => -> { rel.order('created_at') },
-    'updated_date' => -> { rel.order('updated_date') }
+    'created_date' => ->(rel) { rel.order('created_at') },
+    'updated_date' => ->(rel) { rel.order('updated_at') },
+    'owners' => ->(rel) { rel.by_first_owner },
   }.freeze
   
   SORT_DIR_OPTIONS = %w(asc desc).freeze
@@ -857,7 +860,11 @@ class HubsController < ApplicationController
   def hub_admin
     authorize Hub
 
-    @hubs = policy_scope(Hub).paginate(page: params[:page], per_page: 5)
+    sort = SORT_OPTIONS.keys.include?(params[:sort]) ? params[:sort] : SORT_OPTIONS.keys.first
+    order = SORT_DIR_OPTIONS.include?(params[:order]) ? params[:order] : SORT_DIR_OPTIONS.first
+
+    @hubs = SORT_OPTIONS[sort].call(policy_scope(Hub)).paginate(page: params[:page], per_page: get_per_page)
+    @hubs = @hubs.reverse_order if order == 'desc'
   end
 
   def destroy_hubs
@@ -892,6 +899,14 @@ class HubsController < ApplicationController
     if @feed.blank?
       flash[:error] = "Something went wrong, try again."
       redirect_to(hub_path(@hub))
+    end
+  end
+
+  def set_sort
+    @sort = if %w[id title owners created_date updated_date].include?(params[:sort])
+      params[:sort]
+    else
+      'id'
     end
   end
 end
